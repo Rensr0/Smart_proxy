@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SXS · Smart Exit Selector</title>
+  <link rel="stylesheet" href="/static/app.css" />
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="i-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></symbol>
+    <symbol id="i-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><circle cx="7" cy="7" r="1" fill="currentColor"/><circle cx="7" cy="17" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h12"/><path d="M12 6l6 6-6 6"/><path d="M20 7v10"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2V5z"/><path d="M8 7h8M8 11h6"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4 0 7-2.7 7-7 0-3-2-5.5-4-7 .2 2-1 3.5-2.2 3.5C12 9 11 6 8.5 4 8 7 6 9 6 12c0 5 2.5 10 6 10z"/></symbol>
+  </svg>
+
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <div class="logo"><svg width="22" height="22" aria-hidden="true"><use href="#i-logo"/></svg></div>
+        <div>
+          <h1>SXS</h1>
+          <small>Smart Exit Selector</small>
+        </div>
+      </div>
+      <button class="nav-item active" data-view="dashboard"><span class="nav-ico"><svg width="18" height="18"><use href="#i-dashboard"/></svg></span>经营总览</button>
+      <button class="nav-item" data-view="proxies"><span class="nav-ico"><svg width="18" height="18"><use href="#i-server"/></svg></span>代理资产</button>
+      <button class="nav-item" data-view="tunnel"><span class="nav-ico"><svg width="18" height="18"><use href="#i-route"/></svg></span>隧道效率</button>
+      <button class="nav-item" data-view="verify"><span class="nav-ico"><svg width="18" height="18"><use href="#i-check"/></svg></span>质量校验</button>
+      <button class="nav-item" data-view="help"><span class="nav-ico"><svg width="18" height="18"><use href="#i-book"/></svg></span>指标释义</button>
+      <div class="side-foot">
+        Hot Pool · EWMA · Rotate<br />
+        自动刷新 5s · 只读
+      </div>
+    </aside>
+
+    <main>
+      <div class="topbar">
+        <div class="title-wrap">
+          <h2 id="page-title">经营总览</h2>
+          <div class="sub" id="page-sub">实时资源健康 · 隧道效率 · 质量漏斗</div>
+        </div>
+        <div class="actions">
+          <div class="chip"><span class="dot"></span>LIVE DATA</div>
+          <button class="icon-btn" id="theme-toggle"><svg width="18" height="18" id="theme-icon"><use href="#i-moon"/></svg></button>
+        </div>
+      </div>
+
+      <section class="view active" id="view-dashboard">
+        <div class="hero">
+          <div class="card">
+            <div class="label">资源池容量</div>
+            <div class="ring-row">
+              <div class="ring" id="ring"><i id="ring-text">—</i></div>
+              <div style="flex:1;min-width:0">
+                <div class="value" id="hero-size">—</div>
+                <div class="hint">目标 <b id="hero-target">—</b> · 完成度 <b id="hero-pct">—</b></div>
+                <canvas class="spark" id="spark-size" width="180" height="42"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="label">健康 IP</div>
+            <div class="value" id="hero-ok">—</div>
+            <div class="hint">已验证可分配</div>
+            <canvas class="spark" id="spark-ok" width="180" height="42"></canvas>
+          </div>
+          <div class="card">
+            <div class="label">平均延迟</div>
+            <div class="value" id="hero-lat">—</div>
+            <div class="hint">EWMA · 越低越快</div>
+            <canvas class="spark" id="spark-lat" width="180" height="42"></canvas>
+          </div>
+          <div class="card">
+            <div class="label">综合质量分</div>
+            <div class="value" id="hero-score">—</div>
+            <div class="hint">延迟 · 成功 · 热池</div>
+            <canvas class="spark" id="spark-score" width="180" height="42"></canvas>
+          </div>
+        </div>
+
+        <div class="grid-row cols-3">
+          <div class="card">
+            <div class="section-title"><h3>状态构成</h3><span>通 / 断 / 未测</span></div>
+            <div class="bar-list" id="bars-status"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>延迟分层</h3><span>ms</span></div>
+            <div class="bar-list" id="bars-lat"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>运营看板</h3><span>Live</span></div>
+            <div class="ops">
+              <div class="op"><div class="n"><span id="ops-rate">—</span><small style="font-size:11px;opacity:.75;font-weight:600"> / <span id="ops-conn">—</span></small></div><div class="t">成功 / 连接</div></div>
+              <div class="op"><div class="n" id="ops-tunnel">—</div><div class="t">隧道成功率</div></div>
+              <div class="op"><div class="n" id="ops-active">—</div><div class="t">当前连接</div></div>
+              <div class="op"><div class="n" id="ops-sw">—</div><div class="t">切换 / 踢出</div></div>
+              <div class="op"><div class="n" id="ops-hot">—</div><div class="t">热池 IP</div></div>
+              <div class="op"><div class="n"><span id="ops-bw">—</span><small style="font-size:11px;opacity:.75;font-weight:600"> / 峰 <span id="ops-bw-peak">—</span></small></div><div class="t">带宽 当前 / 峰值</div></div>
+              <div class="op"><div class="n" id="ops-total-bytes">—</div><div class="t">累计流量</div></div>
+              <div class="op"><div class="n" id="ops-uptime">—</div><div class="t">运行时长</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-row cols-2">
+          <div class="card">
+            <div class="section-title"><h3>质量漏斗</h3><span>未验证优先</span></div>
+            <div class="bar-list" id="bars-funnel"></div>
+            <div class="hint" id="funnel-hint"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>Top 高分资产</h3><span>Score</span></div>
+            <div class="top-cards" id="top-cards"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-proxies">
+        <div class="hero px-kpis">
+          <div class="card kpi">
+            <div class="kpi-top">
+              <div class="label">资产总数</div>
+              <span class="kpi-dot" style="--d:var(--accent)"></span>
+            </div>
+            <div class="value" id="px-total">—</div>
+            <div class="hint">当前池内 IP</div>
+            <div class="kpi-bar" style="--w:100%;--c:var(--accent)"></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top">
+              <div class="label">已验证</div>
+              <span class="kpi-dot" style="--d:var(--ok)"></span>
+            </div>
+            <div class="value" id="px-ok">—</div>
+            <div class="hint">探活通过</div>
+            <div class="kpi-bar" style="--w:72%;--c:var(--ok)"></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top">
+              <div class="label">热池</div>
+              <span class="kpi-dot" style="--d:var(--warn)"></span>
+            </div>
+            <div class="value" id="px-hot">—</div>
+            <div class="hint">延迟 ≤800ms</div>
+            <div class="kpi-bar" style="--w:40%;--c:var(--warn)"></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top">
+              <div class="label">高分 ≥200</div>
+              <span class="kpi-dot" style="--d:var(--violet)"></span>
+            </div>
+            <div class="value" id="px-high">—</div>
+            <div class="hint">优质资产</div>
+            <div class="kpi-bar" style="--w:28%;--c:var(--violet)"></div>
+          </div>
+        </div>
+
+        <div class="grid-row px-main">
+          <div class="card px-map">
+            <div class="section-title">
+              <h3>地域地图</h3>
+              <span>资产密度 · 可拖拽缩放</span>
+            </div>
+            <div class="geo-map-wrap" id="geo-map"></div>
+            <div class="hint" id="geo-hint">归属地由后台静默补全</div>
+          </div>
+          <div class="px-side">
+            <div class="card">
+              <div class="section-title">
+                <h3>省份分布</h3>
+                <span>Top 8</span>
+              </div>
+              <div class="bar-list" id="geo-provinces"></div>
+            </div>
+            <div class="card">
+              <div class="section-title">
+                <h3>分数分布</h3>
+                <span>Score</span>
+              </div>
+              <div class="bar-list" id="px-score-bands"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card px-top">
+          <div class="section-title">
+            <h3>成功次数 TOP</h3>
+            <span>ok_count</span>
+          </div>
+          <div class="top-cards" id="px-ok-top"></div>
+        </div>
+
+        <div class="card px-table">
+          <div class="section-title">
+            <h3>代理资产清单</h3>
+            <span id="proxy-total">—</span>
+          </div>
+          <div class="table-toolbar" id="table-toolbar">
+            <input type="search" id="px-q" class="tb-input" placeholder="搜索 IP / 归属地 / 账密" autocomplete="off" />
+            <select id="px-status" class="tb-input">
+              <option value="all">全部状态</option>
+              <option value="ok">已验证</option>
+              <option value="fail">已失败</option>
+              <option value="untested">未测试</option>
+            </select>
+            <select id="px-hot-sel" class="tb-input">
+              <option value="all">全部 IP</option>
+              <option value="hot">仅热池</option>
+              <option value="cold">非热池</option>
+            </select>
+            <button type="button" class="tb-btn" id="px-reset">重置</button>
+            <span class="tb-meta" id="px-filter-meta"></span>
+          </div>
+          <div class="table-shell table-wrap" id="table-wrap"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-tunnel">
+        <div class="hero" style="grid-template-columns:1.3fr 1fr 1fr 1fr">
+          <div class="card">
+            <div class="label">监听入口</div>
+            <div class="value plain" id="t-addr" style="font-size:22px">—</div>
+            <div class="hint">业务 HTTP 代理地址 · 每请求换 IP</div>
+            <canvas class="spark" id="spark-tok" width="180" height="42"></canvas>
+          </div>
+          <div class="card">
+            <div class="label">成功 / 连接</div>
+            <div class="value" id="t-success">—</div>
+            <div class="hint">转发成功率 <b id="t-rate">—</b></div>
+            <canvas class="spark" id="spark-tsucc" width="180" height="42"></canvas>
+          </div>
+          <div class="card">
+            <div class="label">切换 / 踢出</div>
+            <div class="value" id="t-sw">—</div>
+            <div class="hint">失败换 IP / 移出池</div>
+            <canvas class="spark" id="spark-tkick" width="180" height="42"></canvas>
+          </div>
+          <div class="card">
+            <div class="label">当前连接</div>
+            <div class="value" id="t-active">—</div>
+            <div class="hint">在途转发会话</div>
+          </div>
+          <div class="card">
+            <div class="label">超时 / 上限</div>
+            <div class="value" id="t-cfg">—</div>
+            <div class="hint" id="t-cfg-hint">建连策略 · 快速失败</div>
+          </div>
+        </div>
+        <div class="grid-row cols-2">
+          <div class="card">
+            <div class="section-title"><h3>转发带宽</h3><span>Realtime</span></div>
+            <div class="value" id="t-bw">—</div>
+            <div class="hint">峰值 <b id="t-bw-peak">—</b> · 累计 <b id="t-bw-total">—</b></div>
+            <canvas class="spark" id="spark-bw" width="180" height="42"></canvas>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>最近表现</h3><span>Live</span></div>
+            <div class="hint" style="font-size:13px;line-height:1.9">
+              最近出口：<code id="t-last">—</code><br />
+              最近错误：<span id="t-err" style="color:var(--err)">—</span><br />
+              运行时长：<span id="t-uptime">—</span><br />
+              池容量目标：<span id="t-target">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title"><h3>隧道策略</h3><span>Policy</span></div>
+          <div class="ops" style="grid-template-columns:repeat(4,1fr)">
+            <div class="op"><div class="n" id="t-num">—</div><div class="t">每次提取 IP 数</div></div>
+            <div class="op"><div class="n" id="t-limit">—</div><div class="t">提取限速</div></div>
+            <div class="op"><div class="n">Rotate</div><div class="t">每请求换 IP</div></div>
+            <div class="op"><div class="n">Hot</div><div class="t">热池优先调度</div></div>
+          </div>
+          <div class="ops" style="grid-template-columns:repeat(2,1fr);margin-top:10px">
+            <div class="op"><div class="n" id="t-hedge">—</div><div class="t">对冲 救场 / 空跑</div></div>
+            <div class="op"><div class="n" id="t-adaptive">—</div><div class="t">自适应建连超时</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-verify">
+        <div class="hero" style="grid-template-columns:repeat(4,1fr)">
+          <div class="card">
+            <div class="label">本轮通过</div>
+            <div class="value" id="v-round">—</div>
+            <div class="hint" id="v-round-hint">—</div>
+          </div>
+          <div class="card">
+            <div class="label">累计通过 / 失败</div>
+            <div class="value" id="v-cum">—</div>
+            <div class="hint" id="v-cum-hint">—</div>
+          </div>
+          <div class="card">
+            <div class="label">池内已测</div>
+            <div class="value" id="v-verified">—</div>
+            <div class="hint">有延迟样本</div>
+          </div>
+          <div class="card">
+            <div class="label">校验节奏</div>
+            <div class="value plain" style="font-size:22px">1s</div>
+            <div class="hint">只测未验证 · 并发 ≤200</div>
+          </div>
+        </div>
+        <div class="grid-row cols-2">
+          <div class="card">
+            <div class="section-title"><h3>质量漏斗</h3><span>Funnel</span></div>
+            <div class="bar-list" id="v-funnel"></div>
+            <div class="hint" id="funnel-hint"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>当前出口 Top</h3><span>Ranked</span></div>
+            <div class="top-cards" id="v-top-cards"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-help">
+        <div class="grid-row cols-2">
+          <div class="card">
+            <div class="section-title"><h3>核心指标</h3><span>Metrics</span></div>
+            <div class="hint" style="font-size:13px;line-height:2">
+              <b>综合质量分</b>：剩余寿命 + 延迟(EWMA) + 成功次数 + 新鲜度 + 热池 − 失败降权。<br />
+              <b>热池</b>：已验证且延迟 ≤ 800ms，优先分配。<br />
+              <b>平均延迟</b>：池内 EWMA 均值，越低秒用越稳。<br />
+              <b>健康 IP</b>：探活通过、可直接给业务。<br />
+              <b>失败计数</b>：失败 +1，成功 −1（不清零）。抓住 flapping，又允许逐步恢复。
+            </div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>隧道与流量</h3><span>Tunnel</span></div>
+            <div class="hint" style="font-size:13px;line-height:2">
+              <b>切换</b>：失败换 IP 次数；<b>踢出</b>：软失败累计 ≥3，或拒连/复位等硬失败立即移出。<br />
+              <b>自适应超时</b>：按 EWMA + 剩余 TTL 动态计算建连超时（约 0.35～1.5s）。<br />
+              <b>建连对冲</b>：主连接挂起约 120ms 后并行备用出口，先通者胜；只对冲建连，不对冲业务流量。救场＝备用出口赢了；空跑＝主连接已通、对冲白开。<br />
+              <b>当前/峰值带宽</b>：隧道转发速率，Redis 持久化。
+            </div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>质量校验</h3><span>Verify</span></div>
+            <div class="hint" style="font-size:13px;line-height:2">
+              每 1s 扫描 <b>未验证</b> 新 IP，多线程探活百度首页。<br />
+              软失败累计达标才踢出并补货；已测过不重复测。<br />
+              「本轮通过率」只统计新 IP；「累计」为进程内汇总（跨重启恢复）。
+            </div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>数据存储</h3><span>Redis</span></div>
+            <div class="hint" style="font-size:13px;line-height:2">
+              代理详情：<code>proxy:{ip}:{port}</code><br />
+              索引：<code>proxy:index</code><br />
+              指标时序/带宽：<code>metrics:*</code>（DB 15）
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>SXS · Smart Exit Selector</footer>
+    </main>
+  </div>
+
+  <nav class="m-tabbar" id="m-tabbar">
+    <button class="m-tab active" data-view="dashboard"><span class="ico"><svg width="18" height="18"><use href="#i-dashboard"/></svg></span>总览</button>
+    <button class="m-tab" data-view="proxies"><span class="ico"><svg width="18" height="18"><use href="#i-server"/></svg></span>资产</button>
+    <button class="m-tab" data-view="tunnel"><span class="ico"><svg width="18" height="18"><use href="#i-route"/></svg></span>隧道</button>
+    <button class="m-tab" data-view="verify"><span class="ico"><svg width="18" height="18"><use href="#i-check"/></svg></span>校验</button>
+    <button class="m-tab" data-view="help"><span class="ico"><svg width="18" height="18"><use href="#i-book"/></svg></span>说明</button>
+  </nav>
+
+  <script src="/static/vendor/echarts/echarts.min.js"></script>
+  <script src="/static/vendor/echarts/china.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
